@@ -1,24 +1,31 @@
 import React, { Component } from 'react';
+import Gallery from './gallery';
 
 class CoordinateForm extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      num_coordinates: 3,
-      coordinates: []
+      numCoords: 3,
+      numPaddocks: 0,
+      coords: [],
+      paddocks: [<div>'hello'</div>]
     };
 
     this._paddockInputForm = this._paddockInputForm.bind(this);
     this._coordinateInputForm = this._coordinateInputForm.bind(this);
     this._addCoordinateInputForm = this._addCoordinateInputForm.bind(this);
+    this._addCoord = this._addCoord.bind(this);
+    this._handleSubmit = this._handleSubmit.bind(this);
+
+    this._addPaddock = this._addPaddock.bind(this);
+    this._renderPaddocks = this._renderPaddocks.bind(this);
   }
 
   _paddockInputForm() {
     let paddockInputFields = [];
-    let paddockInput = this._coordinateInputForm();
-    for (let i = 0; i < this.state.num_coordinates; i++) {
-      paddockInputFields.push(paddockInput);
+    for (let i = 0; i < this.state.numCoords; i++) {
+      paddockInputFields.push(this._coordinateInputForm(i));
     }
 
     return (
@@ -33,36 +40,95 @@ class CoordinateForm extends Component {
     );
   }
 
-  _coordinateInputForm() {
+  _coordinateInputForm(i) {
     return (
       <div>
         <label>Coordinate</label>
-        <label>X</label>
-          <input type="number"></input>
-        <label>Y</label><input type="number"></input>
+        <br/>
+          <input
+            type="string"
+            placeholder="100, 150"
+            onChange={(e) => this._addCoord(i, e)}
+            value={this.state.coords[i]}
+            >
+          </input>
       </div>
     );
   }
 
   _addCoordinateInputForm() {
-    console.log(this.state.num_coordinates);
-    let newNumCoords = this.state.num_coordinates += 1;
-
+    let newNumCoords = this.state.numCoords += 1;
+    this.state.coords.push([]);
     this.setState({
-      num_coordinates: newNumCoords
+      numCoords: newNumCoords
     });
   }
-  
-  update(field) {
-    return (e) => { this.setState( {[field]: e.target.value}); };
+
+  _addCoord(i, e) {
+      console.log(e.target.value);
+      let xAndYCoords = e.target.value.split(', ');
+      let x = parseInt(xAndYCoords[0]);
+      let y = parseInt(xAndYCoords[1]);
+
+      if (x && y) {
+        this.state.coords[i] = [x, y];
+      }
   }
+
   _handleSubmit() {
+    this._addPaddock(this.state.coords);
+    this.state.coords = [];
+    this.setState({ numCoords: 3});
 
   }
 
+  _renderPaddocks() {
+    return (
+      <div>{this.state.paddocks}</div>
+    );
+
+  }
+
+  _addPaddock(coords) {
+    this.state.numPaddocks += 1;
+    let numPaddock = this.state.numPaddocks;
+
+    var paddockIcon =
+      <canvas
+        onLoad={() => this._draw(numPaddock, coords)}
+        id={numPaddock}
+        className="canvas"
+        width="500"
+        height="500">
+      </canvas>;
+      // var ctx = paddockIcon.getContext('2d');
+      // ctx.beginPath();
+      // for (let i = 0; i < coords; i++) {
+      //   ctx.moveTo(coords[i][0], coords[i][1]);
+      // }
+      // ctx.fill();
+    this.state.paddocks.push(paddockIcon);
+  }
+
+  _draw(numPaddock, coords) {
+    console.log('hey');
+    let canvas = document.getElementById(numPaddock);
+    if (canvas.getContext) {
+      let ctx = canvas.getContext('2d');
+
+      ctx.beginPath();
+      for (let i = 0; i < coords.length; i++) {
+        ctx.moveTo(coords[i][0], coords[i][1]);
+      }
+      ctx.fill();
+    }
+  }
   render() {
     return (
-      this._paddockInputForm()
+      <div>
+        {this._paddockInputForm()}
+        {this._renderPaddocks()}
+      </div>
     );
   }
 
